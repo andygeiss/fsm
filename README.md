@@ -53,19 +53,15 @@ based on player inputs, for example.
 In Golang, however, we could implement each state as a function
 that operates on data and returns a function (recursively).
 
-### Small Mario got mushroom
+### Initialize the world
 
-Let's implement the first state transition from `Small Mario`
-to `Super Mario`.
+Let's implement the first state transition from `Uninitialized`
+to `Small Mario`.
 
 ```go
 const (
-	EventGotMushroom = iota
-)
-
-const (
-	StateMarioSmall = iota
-	StateMarioSuper
+	StateMarioUninitialized = iota
+	StateMarioSmall
 )
 
 type World struct {
@@ -74,35 +70,64 @@ type World struct {
 }
 
 func smallMario(world *World) fsm.StateFn[*World] {
-	switch <-world.eventCh {
-	case EventGotMushroom:
-		return superMario(world)
-	}
-	return nil
-}
-
-func superMario(world *World) fsm.StateFn[*World] {
-	world.marioState = StateMarioSuper
+	world.marioState = StateMarioSmall
 	return nil
 }
 ```
 
 Our implementation uses a channel to receive events from the game world.
-Depending on the event `EventGotMushroom` the state transistions from
-`smallMario` to `superMario` with its corresponding state `StateMarioSuper`.
-
-Now we can run the state machine to get the result as follows:
+Now we can execute the state machine to get the result as follows:
 
 ```go
 // Create the inial world state.
 world := &World{
 	eventCh:    make(chan int, 0),
-	marioState: StateMarioSmall,
+	marioState: StateMarioUninitialized,
 }
 // Start the state machine and wait for events.
-go fsm.Run(smallMario, world)
-// Emit the first event.
-world.eventCh <- EventGotMushroom
-// State should be the value of StateMarioSuper.
+doneCh := make(chan bool)
+go fsm.Run(smallMario, world, doneCh)
+<-doneCh
+// State should be the value of StateMarioSmall = 1.
+log.Printf("World marioState: %d", world.marioState)
+```
+
+### Mario got mushroom
+
+After that, we will make the transition from `MarioSmall`
+to `MarioSuper` after collecting a mushroom and receiving
+the event `EventGotMushroom`.
+
+```go
+const (
+	StateMarioUninitialized = iota
+	StateMarioSmall
+	StateMarioSuper // <-- NEW -->
+)
+
+func smallMario(world *World) fsm.StateFn[*World] {
+	world.marioState = StateMarioSmall
+	// <-- NEW
+	switch <-world.eventCh {
+	case EventGotMushroom:
+		return superMario(world)
+	}
+	// -->
+	return nil
+}
+
+// <-- NEW
+func superMario(world *World) fsm.StateFn[*World] {
+	world.marioState = StateMarioSmall
+	return nil
+}
+// -->
+
+// ..
+doneCh := make(chan bool)
+go fsm.Run(smallMario, world, doneCh)
+<-doneCh
+world.eventCh <- EventGotMushroom // <-- NEW -->
+// State should be the value of StateMarioSuper = 2.
 log.Printf("World marioState: %d", world.marioState)
 ```

@@ -16,7 +16,9 @@ func TestRun_Transition_To_New_State_Should_Set_Value_To_1(t *testing.T) {
 		cfg.Value = 1
 		return nil
 	}
-	fsm.Run(stateFn, &cfg)
+	doneCh := make(chan bool)
+	go fsm.Run(stateFn, &cfg, doneCh)
+	<-doneCh
 	if cfg.Value != 1 {
 		t.Errorf("Value should be 1, but got %d", cfg.Value)
 	}
@@ -32,7 +34,9 @@ func TestRun_Transition_From_State_A_To_State_B_Should_Increase_Value_To_2(t *te
 		cfg.Value = 1
 		return stateB
 	}
-	fsm.Run(stateA, &cfg)
+	doneCh := make(chan bool)
+	go fsm.Run(stateA, &cfg, doneCh)
+	<-doneCh
 	if cfg.Value != 2 {
 		t.Errorf("Value should be 2, but got %d", cfg.Value)
 	}

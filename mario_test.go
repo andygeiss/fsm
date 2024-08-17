@@ -7,11 +7,16 @@ import (
 )
 
 const (
-	EventGotMushroom = iota
+	EventGoFeather = iota
+	EventGoFireFlower
+	EventGotMushroom
 )
 
 const (
-	StateMarioSmall = iota
+	StateUndefined = iota
+	StateMarioCape
+	StateMarioFire
+	StateMarioSmall
 	StateMarioSuper
 )
 
@@ -20,7 +25,13 @@ type World struct {
 	marioState int
 }
 
+func fireMario(world *World) fsm.StateFn[*World] {
+	world.marioState = StateMarioFire
+	return nil
+}
+
 func smallMario(world *World) fsm.StateFn[*World] {
+	world.marioState = StateMarioSmall
 	switch <-world.eventCh {
 	case EventGotMushroom:
 		return superMario(world)
@@ -37,11 +48,13 @@ func TestMario_SmallMario_To_SuperMario(t *testing.T) {
 	// Arrange
 	world := &World{
 		eventCh:    make(chan int, 0),
-		marioState: StateMarioSmall,
+		marioState: StateUndefined,
 	}
 	// Act
-	go fsm.Run(smallMario, world)
+	doneCh := make(chan bool)
+	go fsm.Run(smallMario, world, doneCh)
 	world.eventCh <- EventGotMushroom
+	<-doneCh
 	// Assert
 	if world.marioState != StateMarioSuper {
 		t.Errorf("Mario state should be %d, but got %d", StateMarioSuper, world.marioState)
