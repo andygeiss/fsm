@@ -53,89 +53,59 @@ based on player inputs, for example.
 In Golang, however, we could implement each state as a function
 that operates on data and returns a function (recursively).
 
-### Initialize the world
+### Events, States and the World
 
-Let's implement the first state transition from `Uninitialized`
-to `Small Mario`.
-
-```go
-const (
-    StateMarioUninitialized = iota
-    StateMarioSmall
-)
-
-type World struct {
-    eventCh    chan int
-    marioState int
-}
-
-func smallMario(world *World) fsm.StateFn[*World] {
-    world.marioState = StateMarioSmall
-    return nil
-}
-```
-
-Our implementation uses a channel to receive events from the game world.
-Now we can execute the state machine to get the result as follows:
-
-```go
-
-// Create the inial world state.
-world := &World{
-    eventCh:    make(chan int, 0),
-    marioState: StateMarioUninitialized,
-}
-
-// Start the state machine and wait for events.
-doneCh := make(chan bool)
-go fsm.Run(smallMario, world, doneCh)
-<-doneCh
-
-// State should be the value of StateMarioSmall = 1.
-log.Printf("World marioState: %d", world.marioState)
-```
-
-### Mario got mushroom
-
-After that, we will make the transition from `MarioSmall`
-to `MarioSuper` after collecting a mushroom and receiving
-the event `EventGotMushroom`.
+Let's implement the events and states as follows:
 
 ```go
 const (
-    StateMarioUninitialized = iota
-    StateMarioSmall
-    StateMarioSuper // <-- NEW -->
+	EventGotFeather = iota
+	EventGotFireFlower
+	EventGotMushroom
 )
 
-func smallMario(world *World) fsm.StateFn[*World] {
-    world.marioState = StateMarioSmall
-    // <-- NEW
-    switch <-world.eventCh {
-    case EventGotMushroom:
-        return superMario(world)
-    }
-    // -->
-    return nil
-}
-
-// <-- NEW
-func superMario(world *World) fsm.StateFn[*World] {
-    world.marioState = StateMarioSuper
-    return nil
-}
-// -->
-
-// Start the state machine and wait for events.
-doneCh := make(chan bool)
-go fsm.Run(smallMario, world, doneCh)
-
-// Emit events
-world.eventCh <- EventGotMushroom // <-- NEW -->
-
-// Wait for the end.
-<-doneCh
-
-// State should be the value of StateMarioSuper = 2.
-log.Printf("World marioState: %d", world.marioState)
+const (
+	StateMarioCape = iota
+	StateMarioFire
+	StateMarioSmall
+	StateMarioSuper
+	StateMarioUndefined
+)
 ```
+
+Our implementation will use a channel to receive events from the game world.
+The world needs to know the state of Mario.
+
+```go
+type config struct {
+	event      chan int
+	stateMario int
+}
+```
+
+### Mario got some stuff
+
+We will implement the state transitions by using a `fsm.StateFn` as follows:
+
+```go
+func smallMario(ctx context.Context, cfg *config) fsm.StateFn[*config] {
+	cfg.stateMario = StateMarioSmall
+	select {
+	case event := <-cfg.event:
+		switch event {
+		case EventGotFeather:
+			return capeMario(ctx, cfg)
+		case EventGotFireFlower:
+			return fireMario(ctx, cfg)
+		case EventGotMushroom:
+			return superMario(ctx, cfg)
+		}
+	case <-ctx.Done():
+		return nil
+	}
+	return nil
+}
+```
+
+This will result in a very clean approach that is easy to maintain (and test).
+A complete example for Mario can be found [here] (mario_test.go).
