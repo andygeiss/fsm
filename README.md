@@ -108,4 +108,4 @@ func smallMario(ctx context.Context, cfg *config) fsm.StateFn[*config] {
 ```
 
 This will result in a very clean approach that is easy to maintain (and test).
-A complete example for Mario can be found [here] (mario_test.go).
+A complete example for Mario can be found [here](mario_test.go).
