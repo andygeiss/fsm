@@ -60,18 +60,18 @@ to `Small Mario`.
 
 ```go
 const (
-	StateMarioUninitialized = iota
-	StateMarioSmall
+    StateMarioUninitialized = iota
+    StateMarioSmall
 )
 
 type World struct {
-	eventCh    chan int
-	marioState int
+    eventCh    chan int
+    marioState int
 }
 
 func smallMario(world *World) fsm.StateFn[*World] {
-	world.marioState = StateMarioSmall
-	return nil
+    world.marioState = StateMarioSmall
+    return nil
 }
 ```
 
@@ -79,15 +79,18 @@ Our implementation uses a channel to receive events from the game world.
 Now we can execute the state machine to get the result as follows:
 
 ```go
+
 // Create the inial world state.
 world := &World{
-	eventCh:    make(chan int, 0),
-	marioState: StateMarioUninitialized,
+    eventCh:    make(chan int, 0),
+    marioState: StateMarioUninitialized,
 }
+
 // Start the state machine and wait for events.
 doneCh := make(chan bool)
 go fsm.Run(smallMario, world, doneCh)
 <-doneCh
+
 // State should be the value of StateMarioSmall = 1.
 log.Printf("World marioState: %d", world.marioState)
 ```
@@ -100,34 +103,37 @@ the event `EventGotMushroom`.
 
 ```go
 const (
-	StateMarioUninitialized = iota
-	StateMarioSmall
-	StateMarioSuper // <-- NEW -->
+    StateMarioUninitialized = iota
+    StateMarioSmall
+    StateMarioSuper // <-- NEW -->
 )
 
 func smallMario(world *World) fsm.StateFn[*World] {
-	world.marioState = StateMarioSmall
-	// <-- NEW
-	switch <-world.eventCh {
-	case EventGotMushroom:
-		return superMario(world)
-	}
-	// -->
-	return nil
+    world.marioState = StateMarioSmall
+    // <-- NEW
+    switch <-world.eventCh {
+    case EventGotMushroom:
+        return superMario(world)
+    }
+    // -->
+    return nil
 }
 
 // <-- NEW
 func superMario(world *World) fsm.StateFn[*World] {
-	world.marioState = StateMarioSmall
-	return nil
+    world.marioState = StateMarioSmall
+    return nil
 }
 // -->
 
-// ..
+// Start the state machine and wait for events.
 doneCh := make(chan bool)
 go fsm.Run(smallMario, world, doneCh)
 <-doneCh
+
+// Emit events
 world.eventCh <- EventGotMushroom // <-- NEW -->
+
 // State should be the value of StateMarioSuper = 2.
 log.Printf("World marioState: %d", world.marioState)
 ```
