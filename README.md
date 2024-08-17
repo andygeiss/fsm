@@ -121,7 +121,7 @@ func smallMario(world *World) fsm.StateFn[*World] {
 
 // <-- NEW
 func superMario(world *World) fsm.StateFn[*World] {
-    world.marioState = StateMarioSmall
+    world.marioState = StateMarioSuper
     return nil
 }
 // -->
