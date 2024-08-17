@@ -59,17 +59,17 @@ Let's implement the events and states as follows:
 
 ```go
 const (
-	EventGotFeather = iota
-	EventGotFireFlower
-	EventGotMushroom
+    EventGotFeather = iota
+    EventGotFireFlower
+    EventGotMushroom
 )
 
 const (
-	StateMarioCape = iota
-	StateMarioFire
-	StateMarioSmall
-	StateMarioSuper
-	StateMarioUndefined
+    StateMarioCape = iota
+    StateMarioFire
+    StateMarioSmall
+    StateMarioSuper
+    StateMarioUndefined
 )
 ```
 
@@ -78,8 +78,8 @@ The world needs to know the state of Mario.
 
 ```go
 type config struct {
-	event      chan int
-	stateMario int
+    event      chan int
+    stateMario int
 }
 ```
 
@@ -89,21 +89,21 @@ We will implement the state transitions by using a `fsm.StateFn` as follows:
 
 ```go
 func smallMario(ctx context.Context, cfg *config) fsm.StateFn[*config] {
-	cfg.stateMario = StateMarioSmall
-	select {
-	case event := <-cfg.event:
-		switch event {
-		case EventGotFeather:
-			return capeMario(ctx, cfg)
-		case EventGotFireFlower:
-			return fireMario(ctx, cfg)
-		case EventGotMushroom:
-			return superMario(ctx, cfg)
-		}
-	case <-ctx.Done():
-		return nil
-	}
-	return nil
+    cfg.stateMario = StateMarioSmall
+    select {
+    case event := <-cfg.event:
+        switch event {
+        case EventGotFeather:
+            return capeMario(ctx, cfg)
+        case EventGotFireFlower:
+            return fireMario(ctx, cfg)
+        case EventGotMushroom:
+            return superMario(ctx, cfg)
+        }
+    case <-ctx.Done():
+        return nil
+    }
+    return nil
 }
 ```
 
