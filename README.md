@@ -129,10 +129,12 @@ func superMario(world *World) fsm.StateFn[*World] {
 // Start the state machine and wait for events.
 doneCh := make(chan bool)
 go fsm.Run(smallMario, world, doneCh)
-<-doneCh
 
 // Emit events
 world.eventCh <- EventGotMushroom // <-- NEW -->
+
+// Wait for the end.
+<-doneCh
 
 // State should be the value of StateMarioSuper = 2.
 log.Printf("World marioState: %d", world.marioState)
