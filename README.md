@@ -30,7 +30,7 @@ as shown in the following illustration from the [Mario Wiki](https://www.mariowi
 <img src="https://github.com/andygeiss/fsm/blob/main/mario.png?raw=true" />
 </p>
 
-Based on the iamge above, we could specify the “States” and “Events” as follows:
+Based on the image above, we could specify the `States` and `Events` as follows:
 
 States:
 1. Small Mario
@@ -44,8 +44,8 @@ Events:
 3. Got Feather
 
 In Object-Oriented Programming (OOP), we would specify `Mario`
-as an object that manages its internal/private ‘state’.
-The behavior of `Mario` changes depending on the 'state'
+as an object that manages its internal/private `State`.
+The behavior of `Mario` changes depending on the `State`
 and is implemented as methods.
 The game `World` or `Level` knows its entities and
-must emit the `events` based on `player` inputs, for example.
+must emit the `Events` based on `Player` inputs, for example.
