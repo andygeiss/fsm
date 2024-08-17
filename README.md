@@ -17,7 +17,7 @@ Compute the next state with recursive state functions in Golang using generics a
 Based on Rob Pike's talk on [lexical scanning](https://www.youtube.com/watch?v=HxaD_trXwRE)
 I thought about a version of a finite state machine (FSM) that uses
 `Generics` from [go1.18](https://go.dev/blog/go1.18) and
-Iterators” from [go1.23](https://go.dev/blog/go1.23), in order to
+`Iterators` from [go1.23](https://go.dev/blog/go1.23), in order to
 Golang's fantastic “batteries included” capabilities.
 
 ## Walkthrough
